@@ -3,6 +3,8 @@
 # Used later for rsyncing updates
 UPDATES_SITE="updates.jenkins.io"
 RSYNC_USER="www-data"
+UPDATES_R2_BUCKETS="westeurope-updates-jenkins-io"
+UPDATES_R2_ENDPOINT="https://8d1838a43923148c5cee18ccc356a594.r2.cloudflarestorage.com"
 
 wget --no-verbose -O jq https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 || { echo "Failed to download jq" >&2 ; exit 1; }
 chmod +x jq || { echo "Failed to make jq executable" >&2 ; exit 1; }
@@ -24,3 +26,18 @@ ssh ${RSYNC_USER}@${UPDATES_SITE} "/srv/releases/sync-recent-releases.sh /tmp/up
 # delete old sites
 chmod -R a+r www2
 rsync -acvz www2/ --exclude=/updates --delete ${RSYNC_USER}@${UPDATES_SITE}:/var/www/${UPDATES_SITE}
+
+## TODO: cleanup commands above when https://github.com/jenkins-infra/helpdesk/issues/2649 is ready for production
+# Sync CloudFlare R2 buckets content using the updates-jenkins-io profile, excluding 'updates' folder which comes from tool installer generator
+aws s3 sync www2/ s3://${UPDATES_R2_BUCKETS}/ --profile updates-jenkins-io --delete --exclude="updates/*" --endpoint-url ${UPDATES_R2_ENDPOINT}
+
+# Init env var containing the updates-jenkins-io Azure File Share URL including the SAS token, both defined in https://github.com/jenkins-infra/azure/blob/main/updates.jenkins.io.tf
+. /home/jenkins/.azure/.env
+
+# Sync Azure File Share content
+azcopy sync www2/ "${UPDATES_FILE_SHARE_URL}" --recursive=true --delete-destination=true --exclude-path="updates"
+
+# /TIME sync, used by mirrorbits to know the last update date to take in account
+echo $(date +%s) > www2/TIME
+aws s3 cp www2/TIME s3://${UPDATES_R2_BUCKETS}/ --profile updates-jenkins-io --endpoint-url ${UPDATES_R2_ENDPOINT}
+azcopy cp www2/TIME "${UPDATES_FILE_SHARE_URL}" --overwrite=true
