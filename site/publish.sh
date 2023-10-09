@@ -31,9 +31,6 @@ rsync -acvz www2/ --exclude=/updates --delete ${RSYNC_USER}@${UPDATES_SITE}:/var
 # Sync CloudFlare R2 buckets content using the updates-jenkins-io profile, excluding 'updates' folder which comes from tool installer generator
 aws s3 sync www2/ s3://${UPDATES_R2_BUCKETS}/ --profile updates-jenkins-io --delete --exclude="updates/*" --endpoint-url ${UPDATES_R2_ENDPOINT}
 
-# Init env var containing the updates-jenkins-io Azure File Share URL including the SAS token, both defined in https://github.com/jenkins-infra/azure/blob/main/updates.jenkins.io.tf
-. /home/jenkins/.azure/.env
-
 # Sync Azure File Share content
 azcopy sync www2/ "${UPDATES_FILE_SHARE_URL}" --recursive=true --delete-destination=true --exclude-path="updates"
 
