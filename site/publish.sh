@@ -35,6 +35,6 @@ aws s3 sync www2/ s3://${UPDATES_R2_BUCKETS}/ --profile updates-jenkins-io --del
 azcopy sync www2/ "${UPDATES_FILE_SHARE_URL}" --recursive=true --delete-destination=true --exclude-path="updates"
 
 # /TIME sync, used by mirrorbits to know the last update date to take in account
-echo $(date +%s) > www2/TIME
+date +%s > ./www2/TIME
 aws s3 cp www2/TIME s3://${UPDATES_R2_BUCKETS}/ --profile updates-jenkins-io --endpoint-url ${UPDATES_R2_ENDPOINT}
 azcopy cp www2/TIME "${UPDATES_FILE_SHARE_URL}" --overwrite=true
