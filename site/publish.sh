@@ -5,13 +5,14 @@ UPDATES_SITE="updates.jenkins.io"
 RSYNC_USER="www-data"
 UPDATES_R2_BUCKETS="westeurope-updates-jenkins-io"
 UPDATES_R2_ENDPOINT="https://8d1838a43923148c5cee18ccc356a594.r2.cloudflarestorage.com"
+ROOT_FOLDER="/home/jenkins/lemeurherve/pr-745" # TODO: remove after debug
 
 wget --no-verbose -O jq https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 || { echo "Failed to download jq" >&2 ; exit 1; }
 chmod +x jq || { echo "Failed to make jq executable" >&2 ; exit 1; }
 
 export PATH=.:$PATH
 
-"$( dirname "$0" )/generate.sh" ./www2 ./download
+"$( dirname "$0" )/generate.sh" "${ROOT_FOLDER}"/www2 ./download
 
 # push plugins to mirrors.jenkins-ci.org
 chmod -R a+r download
@@ -24,7 +25,7 @@ chmod -R a+r download
 # # push generated index to the production servers
 # # 'updates' come from tool installer generator, so leave that alone, but otherwise
 # # delete old sites
-chmod -R a+r www2
+chmod -R a+r "${ROOT_FOLDER}"/www2
 # rsync -acvz www2/ --exclude=/updates --delete ${RSYNC_USER}@${UPDATES_SITE}:/var/www/${UPDATES_SITE}
 
 # ## TODO: cleanup commands above when https://github.com/jenkins-infra/helpdesk/issues/2649 is ready for production
@@ -35,7 +36,7 @@ chmod -R a+r www2
 # echo "= azcopy sync done."
 
 # Sync CloudFlare R2 buckets content using the updates-jenkins-io profile, excluding 'updates' folder which comes from tool installer generator
-aws s3 sync ./www2/ s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --no-progress --debug --delete --exclude="updates/*" --endpoint-url "${UPDATES_R2_ENDPOINT}"
+aws s3 sync "${ROOT_FOLDER}"/www2/ s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --no-progress --debug --delete --exclude="updates/*" --endpoint-url "${UPDATES_R2_ENDPOINT}"
 
 # Debug
 echo "= aws sync done."
