@@ -36,7 +36,7 @@ chmod -R a+r "${ROOT_FOLDER}"/www2
 # echo "= azcopy sync done."
 
 # Sync CloudFlare R2 buckets content using the updates-jenkins-io profile, excluding 'updates' folder which comes from tool installer generator
-aws s3 sync "${ROOT_FOLDER}"/www2/ s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --no-progress --no-verify-ssl --delete --exclude="updates/*" --endpoint-url "${UPDATES_R2_ENDPOINT}"
+aws s3 sync "${ROOT_FOLDER}"/www2/ s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --no-progress --delete --exclude="updates/*" --endpoint-url "${UPDATES_R2_ENDPOINT}"
 
 # Debug
 echo "= aws sync done."
@@ -45,9 +45,3 @@ echo "= aws sync done."
 # date +%s > ./www2/TIME
 # aws s3 cp ./www2/TIME s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --endpoint-url "${UPDATES_R2_ENDPOINT}"
 # azcopy cp ./www2/TIME "${UPDATES_FILE_SHARE_URL}" --overwrite=true
-
-
-# --size-only (boolean) Makes the size of each key the only criteria used to decide whether to sync from source to destination. (does not take in account the last modified date of the )
-# --no-verify-ssl (boolean) By default, the AWS CLI uses SSL when communicating with AWS services. For each SSL connection, the AWS CLI will verify SSL certificates. This option overrides the default behavior of verifying SSL certificates.
-
-# --no-sign-request (boolean) Do not sign requests. Credentials will not be loaded if this argument is provided.
