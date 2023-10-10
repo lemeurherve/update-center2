@@ -15,7 +15,7 @@ export PATH=.:$PATH
 # "$( dirname "$0" )/generate.sh" "${ROOT_FOLDER}"/www2 ./download
 
 # push plugins to mirrors.jenkins-ci.org
-chmod -R a+r download
+# chmod -R a+r download
 # rsync -avz --size-only download/plugins/ ${RSYNC_USER}@${UPDATES_SITE}:/srv/releases/jenkins/plugins
 
 # # Invoke a minimal mirrorsync to mirrorbits which will use the 'recent-releases.json' file as input
