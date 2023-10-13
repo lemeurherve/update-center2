@@ -5,7 +5,11 @@ UPDATES_SITE="updates.jenkins.io"
 RSYNC_USER="www-data"
 UPDATES_R2_BUCKETS="westeurope-updates-jenkins-io"
 UPDATES_R2_ENDPOINT="https://8d1838a43923148c5cee18ccc356a594.r2.cloudflarestorage.com"
-ROOT_FOLDER="/home/jenkins/lemeurherve/pr-745" # TODO: remove after debug
+if [[ -z "$ROOT_FOLDER" ]]; then
+    ROOT_FOLDER="/home/jenkins/lemeurherve/pr-745" # TODO: remove after debug
+fi
+
+echo "ROOT_FOLDER: ${ROOT_FOLDER}"
 
 wget --no-verbose -O jq https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 || { echo "Failed to download jq" >&2 ; exit 1; }
 chmod +x jq || { echo "Failed to make jq executable" >&2 ; exit 1; }
