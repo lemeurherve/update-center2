@@ -36,7 +36,7 @@ rsync -acvz "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete ${RSYNC_USER}@${U
 ## TODO: cp www2 to another folder like "www3" and unlink in that new folder so www2 can be archived unmodified
 
 # Unlink
-find "${ROOT_FOLDER}"/www2 -type l -exec sh -c 'for i in "$@"; do cp --preserve --remove-destination "$(readlink -f "$i")" "$i"; done' sh {} +
+find "${ROOT_FOLDER}"/www2 -type l -exec sh -c 'for i in "$@"; do cp -r --preserve --remove-destination "$(readlink -f "$i")" "$i"; done' sh {} +
 
 # ## TODO: cleanup commands above when https://github.com/jenkins-infra/helpdesk/issues/2649 is ready for production
 
@@ -49,6 +49,9 @@ echo "= azcopy sync done."
 # Sync CloudFlare R2 buckets content using the updates-jenkins-io profile, excluding 'updates' folder which comes from tool installer generator
 aws s3 sync "${ROOT_FOLDER}"/www2/ s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --no-progress --size-only --no-follow-symlinks --exclude="updates/*" --endpoint-url "${UPDATES_R2_ENDPOINT}"
 # aws s3 cp "${ROOT_FOLDER}"/www2/ s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --no-progress --no-follow-symlinks --exclude="updates/*" --endpoint-url "${UPDATES_R2_ENDPOINT}"
+
+
+## TODO: test if needed rclone both rsync VM and R2 bucket(s) replacing these 2 calls
 
 # Debug
 echo "= aws sync done."
