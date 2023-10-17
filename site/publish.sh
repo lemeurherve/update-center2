@@ -33,8 +33,11 @@ chmod -R a+r "${ROOT_FOLDER}"/www2
 # rsync -acvz www2/ --exclude=/updates --delete ${RSYNC_USER}@${UPDATES_SITE}:/var/www/${UPDATES_SITE}
 rsync -acvz "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete ${RSYNC_USER}@${UPDATES_SITE}:/tmp/www/${UPDATES_SITE}
 
-# Remove simlinks
-find "${ROOT_FOLDER}"/www2 -type l -delete
+# # Remove simlinks
+# find "${ROOT_FOLDER}"/www2 -type l -delete
+
+# Unlink
+find "${ROOT_FOLDER}"/www2 -type l -exec sh -c 'for i in "$@"; do cp --preserve --remove-destination "$(readlink -f "$i")" "$i"; done' sh {} +
 
 # ## TODO: cleanup commands above when https://github.com/jenkins-infra/helpdesk/issues/2649 is ready for production
 # Sync Azure File Share content
