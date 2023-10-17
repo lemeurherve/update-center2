@@ -31,21 +31,21 @@ export PATH=.:$PATH
 # # delete old sites
 chmod -R a+r "${ROOT_FOLDER}"/www2
 # # rsync -acvz www2/ --exclude=/updates --delete ${RSYNC_USER}@${UPDATES_SITE}:/var/www/${UPDATES_SITE}
-rsync -acvz "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete --stats ${RSYNC_USER}@${UPDATES_SITE}:/tmp/lemeurherve/pr-745/www/${UPDATES_SITE}
+time rsync -acvz "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete --stats ${RSYNC_USER}@${UPDATES_SITE}:/tmp/lemeurherve/pr-745/www/${UPDATES_SITE}
 
 # ## TODO: cleanup commands above when https://github.com/jenkins-infra/helpdesk/issues/2649 is ready for production
 
 # copy & transform simlinks into referent file/dir
-rsync -acvz --no-links --stats "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete "${ROOT_FOLDER}"/www3/
+time rsync -acvz --no-links --stats "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete "${ROOT_FOLDER}"/www3/
 
 # Sync Azure File Share content
-azcopy sync "${ROOT_FOLDER}"/www3/ "${UPDATES_FILE_SHARE_URL}" --recursive=true --delete-destination=true --exclude-path="updates"
+time azcopy sync "${ROOT_FOLDER}"/www3/ "${UPDATES_FILE_SHARE_URL}" --recursive=true --delete-destination=true --exclude-path="updates"
 
 # Debug
 echo "= azcopy sync done."
 
 # Sync CloudFlare R2 buckets content using the updates-jenkins-io profile, excluding 'updates' folder which comes from tool installer generator
-aws s3 sync "${ROOT_FOLDER}"/www3/ s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --no-progress --size-only --no-follow-symlinks --exclude="updates/*" --endpoint-url "${UPDATES_R2_ENDPOINT}"
+time aws s3 sync "${ROOT_FOLDER}"/www3/ s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --no-progress --size-only --no-follow-symlinks --exclude="updates/*" --endpoint-url "${UPDATES_R2_ENDPOINT}"
 # aws s3 cp "${ROOT_FOLDER}"/www2/ s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --no-progress --no-follow-symlinks --exclude="updates/*" --endpoint-url "${UPDATES_R2_ENDPOINT}"
 
 
