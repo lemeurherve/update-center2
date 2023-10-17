@@ -32,6 +32,9 @@ export PATH=.:$PATH
 chmod -R a+r "${ROOT_FOLDER}"/www2
 # rsync -acvz www2/ --exclude=/updates --delete ${RSYNC_USER}@${UPDATES_SITE}:/var/www/${UPDATES_SITE}
 
+# Remove simlinks
+find "${ROOT_FOLDER}"/www2 -type l -delete
+
 # ## TODO: cleanup commands above when https://github.com/jenkins-infra/helpdesk/issues/2649 is ready for production
 # Sync Azure File Share content
 azcopy sync "${ROOT_FOLDER}"/www2/ "${UPDATES_FILE_SHARE_URL}" --recursive=true --delete-destination=true --exclude-path="updates"
