@@ -36,7 +36,7 @@ rsync -acvz "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete ${RSYNC_USER}@${U
 # ## TODO: cleanup commands above when https://github.com/jenkins-infra/helpdesk/issues/2649 is ready for production
 
 # copy & transform simlinks into referent file/dir
-rsync -acvz --copy-links "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete "${ROOT_FOLDER}"/www3/
+rsync -acvz --no-links --stats "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete "${ROOT_FOLDER}"/www3/
 
 # Sync Azure File Share content
 azcopy sync "${ROOT_FOLDER}"/www3/ "${UPDATES_FILE_SHARE_URL}" --recursive=true --delete-destination=true --exclude-path="updates"
