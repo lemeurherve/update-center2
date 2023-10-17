@@ -31,6 +31,7 @@ export PATH=.:$PATH
 # # delete old sites
 chmod -R a+r "${ROOT_FOLDER}"/www2
 # rsync -acvz www2/ --exclude=/updates --delete ${RSYNC_USER}@${UPDATES_SITE}:/var/www/${UPDATES_SITE}
+rsync -acvz "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete ${RSYNC_USER}@${UPDATES_SITE}:/tmp/www/${UPDATES_SITE}
 
 # Remove simlinks
 find "${ROOT_FOLDER}"/www2 -type l -delete
