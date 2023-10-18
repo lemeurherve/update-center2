@@ -43,26 +43,24 @@ time rsync -acvz "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete --stats ${RS
 
 # copy & transform simlinks into referent file/dir
 # time rsync -acvz --copy-links --safe-links --stats "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete "${ROOT_FOLDER}"/www3/
-time rsync -acvz --no-links --stats "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete "${ROOT_FOLDER}"/www3/
-
-ls -l "${ROOT_FOLDER}"/www3/
-ls -l "${ROOT_FOLDER}"/www3/current
+time rsync -acvz --no-links --stats "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete "${ROOT_FOLDER}"/www3/ && ls -l "${ROOT_FOLDER}"/www3/ && ls -l "${ROOT_FOLDER}"/www3/current & 2>&1 1>/tmp/lemeurherve/pr-745/output-www3.log
 
 # Sync Azure File Share content
-time azcopy sync "${ROOT_FOLDER}"/www3/ "${UPDATES_FILE_SHARE_URL}" --recursive=true --delete-destination=true --exclude-path="updates"
+time azcopy sync "${ROOT_FOLDER}"/www3/ "${UPDATES_FILE_SHARE_URL}" --recursive=true --delete-destination=true --exclude-path="updates" && echo "= azcopy sync done." & 2>&1 1>/tmp/lemeurherve/pr-745/output-azcopy.log
 
-# Debug
-echo "= azcopy sync done."
 
 # Sync CloudFlare R2 buckets content using the updates-jenkins-io profile, excluding 'updates' folder which comes from tool installer generator
-time aws s3 sync "${ROOT_FOLDER}"/www3/ s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --no-progress --size-only --no-follow-symlinks --exclude="updates/*" --endpoint-url "${UPDATES_R2_ENDPOINT}"
+time aws s3 sync "${ROOT_FOLDER}"/www3/ s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --no-progress --size-only --no-follow-symlinks --exclude="updates/*" --endpoint-url "${UPDATES_R2_ENDPOINT}" && echo "= aws sync done." &  2>&1 1>/tmp/lemeurherve/pr-745/output-awsS3.log
 # aws s3 cp "${ROOT_FOLDER}"/www2/ s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --no-progress --no-follow-symlinks --exclude="updates/*" --endpoint-url "${UPDATES_R2_ENDPOINT}"
 
+wait
+# wait for all deferred task
+
+echo all done
 
 ## TODO: test if needed rclone both rsync VM and R2 bucket(s) replacing these 2 calls
 
 # Debug
-echo "= aws sync done."
 
 # # /TIME sync, used by mirrorbits to know the last update date to take in account
 # date +%s > ./www2/TIME
