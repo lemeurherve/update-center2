@@ -37,11 +37,16 @@ chmod -R a+r "${ROOT_FOLDER}"/www2
 # Original-like rsync to pkg VM for testing and timing purposes
 time rsync -acvz "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete --stats ${RSYNC_USER}@${UPDATES_SITE}:/tmp/lemeurherve/pr-745/www/${UPDATES_SITE}
 
+### Above ^: not to be modified
+
+### Below: parallelise
+
 # copy & transform simlinks into referent file/dir
 # time rsync -acvz --copy-links --safe-links --stats "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete "${ROOT_FOLDER}"/www3/
 time rsync -acvz --no-links --stats "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete "${ROOT_FOLDER}"/www3/
 
 ls -l "${ROOT_FOLDER}"/www3/
+ls -l "${ROOT_FOLDER}"/www3/current
 
 # Sync Azure File Share content
 time azcopy sync "${ROOT_FOLDER}"/www3/ "${UPDATES_FILE_SHARE_URL}" --recursive=true --delete-destination=true --exclude-path="updates"
