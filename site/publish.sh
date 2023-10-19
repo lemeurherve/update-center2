@@ -55,7 +55,14 @@ time rsync -acvz "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete --stats ${RS
 wait
 # wait for all deferred task
 
-echo all done
+echo '===============================    all done   ============================'
+echo '------------------------------- rsync of www3 ----------------------------'
+cat "${ROOT_FOLDER}"/output-www3.log
+echo '-------------------------------     azcopy    ----------------------------'
+cat "${ROOT_FOLDER}"/output-azcopy.log
+echo '-------------------------------     aws S3    ----------------------------'
+cat "${ROOT_FOLDER}"/output-awsS3.log
+
 
 ## TODO: test if needed rclone both rsync VM and R2 bucket(s) replacing these 2 calls
 
