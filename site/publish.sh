@@ -34,30 +34,35 @@ chmod -R a+r "${ROOT_FOLDER}"/www2
 
 # ### TODO: cleanup original commands above when https://github.com/jenkins-infra/helpdesk/issues/2649 is ready for production
 
-# Original-like rsync to pkg VM for testing and timing purposes
-time rsync -acvz "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete --stats ${RSYNC_USER}@${UPDATES_SITE}:/tmp/lemeurherve/pr-745/www/${UPDATES_SITE}
+# Perform a copy with dereference symlink (ovject storage do not support symlinks)
+time rsync -acvz --no-links --stats "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete "${ROOT_FOLDER}"/www3/
 
 ### Above ^: not to be modified
 
-### Below: parallelise
-
 # copy & transform simlinks into referent file/dir
 # time rsync -acvz --copy-links --safe-links --stats "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete "${ROOT_FOLDER}"/www3/
-(time rsync -acvz --no-links --stats "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete "${ROOT_FOLDER}"/www3/ && ls -l "${ROOT_FOLDER}"/www3/ && ls -l "${ROOT_FOLDER}"/www3/current) 2>&1 1>"${ROOT_FOLDER}"/output-www3.log &
+
+
+echo '------------------------------- rsync of www3 ----------------------------'
+cat "${ROOT_FOLDER}"/output-www3.log
+
+### Below: parallelise
+
+# Original-like rsync to pkg VM for testing and timing purposes
+(time rsync -acvz "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete --stats ${RSYNC_USER}@${UPDATES_SITE}:/tmp/lemeurherve/pr-745/www/${UPDATES_SITE}) 1>"${ROOT_FOLDER}"/output-pkgcopy.log 2>&1 &
 
 # Sync Azure File Share content
-(time azcopy sync "${ROOT_FOLDER}"/www3/ "${UPDATES_FILE_SHARE_URL}" --recursive=true --delete-destination=true --exclude-path="updates" && echo "= azcopy sync done.") 2>&1 1>"${ROOT_FOLDER}"/output-azcopy.log &
+(time azcopy sync "${ROOT_FOLDER}"/www3/ "${UPDATES_FILE_SHARE_URL}" --recursive=true --delete-destination=true --exclude-path="updates" && echo "= azcopy sync done.") 1>"${ROOT_FOLDER}"/output-azcopy.log 2>&1 &
 
 # Sync CloudFlare R2 buckets content using the updates-jenkins-io profile, excluding 'updates' folder which comes from tool installer generator
-(time aws s3 sync "${ROOT_FOLDER}"/www3/ s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --no-progress --size-only --no-follow-symlinks --exclude="updates/*" --endpoint-url "${UPDATES_R2_ENDPOINT}" && echo "= aws sync done.") 2>&1 1>"${ROOT_FOLDER}"/output-awsS3.log &
+(time aws s3 sync "${ROOT_FOLDER}"/www3/ s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --no-progress --size-only --no-follow-symlinks --exclude="updates/*" --endpoint-url "${UPDATES_R2_ENDPOINT}" && echo "= aws sync done.") 1>"${ROOT_FOLDER}"/output-awsS3.log 2>&1 &
 # aws s3 cp "${ROOT_FOLDER}"/www2/ s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --no-progress --no-follow-symlinks --exclude="updates/*" --endpoint-url "${UPDATES_R2_ENDPOINT}"
 
 wait
 # wait for all deferred task
-
 echo '===============================    all done   ============================'
-echo '------------------------------- rsync of www3 ----------------------------'
-cat "${ROOT_FOLDER}"/output-www3.log
+echo '-------------------------------     pkgcopy    ----------------------------'
+cat "${ROOT_FOLDER}"/output-pkgcopy.log
 echo '-------------------------------     azcopy    ----------------------------'
 cat "${ROOT_FOLDER}"/output-azcopy.log
 echo '-------------------------------     aws S3    ----------------------------'
