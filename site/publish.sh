@@ -14,6 +14,8 @@ echo "ROOT_FOLDER: ${ROOT_FOLDER}"
 wget --no-verbose -O jq https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 || { echo "Failed to download jq" >&2 ; exit 1; }
 chmod +x jq || { echo "Failed to make jq executable" >&2 ; exit 1; }
 
+command -v parallel >/dev/null 2>&1 || { echo "ERROR: parralel command not found. Exiting."; exit 1; }
+
 export PATH=.:$PATH
 
 # "$( dirname "$0" )/generate.sh" "${ROOT_FOLDER}"/www2 ./download
@@ -58,7 +60,7 @@ echo '--------------------------- Launch Parallelization -----------------------
 (time azcopy sync "${ROOT_FOLDER}"/www3/ "${UPDATES_FILE_SHARE_URL}" --recursive=true --delete-destination=true --exclude-path="updates") 1>"${ROOT_FOLDER}"/output-azcopy.log 2>&1 &
 
 # Sync CloudFlare R2 buckets content using the updates-jenkins-io profile, excluding 'updates' folder which comes from tool installer generator (using www3 to avoid symlinks)
-(time aws s3 sync "${ROOT_FOLDER}"/www3/ s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --no-progress --no-follow-symlinks --exclude="updates/*" --endpoint-url "${UPDATES_R2_ENDPOINT}") 1>"${ROOT_FOLDER}"/output-awsS3.log 2>&1 &
+(time aws s3 sync "${ROOT_FOLDER}"/www3/ s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --no-progress --no-follow-symlinks --size-only --exclude="updates/*" --endpoint-url "${UPDATES_R2_ENDPOINT}") 1>"${ROOT_FOLDER}"/output-awsS3.log 2>&1 &
 
 wait
 # wait for all deferred task
