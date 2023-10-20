@@ -47,9 +47,13 @@ echo '------------------------------- rsync of www3 ----------------------------
 cat "${ROOT_FOLDER}"/output-www3.log
 
 ### Below: parallelise
+echo '--------------------------- Launch Parallelization -----------------------'
+
+## "${ROOT_FOLDER}"/www3/ doesn't have symlinks already
+## "${ROOT_FOLDER}"/www2/ still have symlinks
 
 # Original-like rsync to pkg VM for testing and timing purposes
-(time rsync -acvz "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete --stats ${RSYNC_USER}@${UPDATES_SITE}:/tmp/lemeurherve/pr-745/www/${UPDATES_SITE}) 1>"${ROOT_FOLDER}"/output-pkgcopy.log 2>&1 &
+(time rsync -acvz "${ROOT_FOLDER}"/www3/ --exclude=/updates --delete --stats ${RSYNC_USER}@${UPDATES_SITE}:/tmp/lemeurherve/pr-745/www/${UPDATES_SITE}) 1>"${ROOT_FOLDER}"/output-pkgcopy.log 2>&1 &
 
 # Sync Azure File Share content
 (time azcopy sync "${ROOT_FOLDER}"/www3/ "${UPDATES_FILE_SHARE_URL}" --recursive=true --delete-destination=true --exclude-path="updates" && echo "= azcopy sync done.") 1>"${ROOT_FOLDER}"/output-azcopy.log 2>&1 &
