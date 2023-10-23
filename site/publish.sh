@@ -54,18 +54,22 @@ echo '--------------------------- Launch Parallelization -----------------------
 
 ## "${ROOT_FOLDER}"/www2/ still have symlinks
 
-# Original-like rsync to pkg VM for testing and timing purposes (keep www2 for symlinks)
-# keep exclude as from www2 with symlinks
-(time rsync -acz "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete --stats ${RSYNC_USER}@${UPDATES_SITE}:/tmp/lemeurherve/pr-745/www/${UPDATES_SITE}) 1>"${ROOT_FOLDER}"/output-pkgcopy.log 2>&1 &
+# # Original-like rsync to pkg VM for testing and timing purposes (keep www2 for symlinks)
+# # keep exclude as from www2 with symlinks
+# (time rsync -acz "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete --stats ${RSYNC_USER}@${UPDATES_SITE}:/tmp/lemeurherve/pr-745/www/${UPDATES_SITE}) 1>"${ROOT_FOLDER}"/output-pkgcopy.log 2>&1 &
+# # Sync Azure File Share content (using www3 to avoid symlinks)
+# (time azcopy sync "${ROOT_FOLDER}"/www3/ "${UPDATES_FILE_SHARE_URL}" --recursive=true --delete-destination=true) 1>"${ROOT_FOLDER}"/output-azcopy.log 2>&1 &
+# # Sync CloudFlare R2 buckets content using the updates-jenkins-io profile, excluding 'updates' folder which comes from tool installer generator (using www3 to avoid symlinks)
+# (time aws s3 sync "${ROOT_FOLDER}"/www3/ s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --no-progress --no-follow-symlinks --size-only --endpoint-url "${UPDATES_R2_ENDPOINT}") 1>"${ROOT_FOLDER}"/output-awsS3.log 2>&1 &
+# wait
 
 
-# Sync Azure File Share content (using www3 to avoid symlinks)
-(time azcopy sync "${ROOT_FOLDER}"/www3/ "${UPDATES_FILE_SHARE_URL}" --recursive=true --delete-destination=true) 1>"${ROOT_FOLDER}"/output-azcopy.log 2>&1 &
+parallel --dryrun \
+    time rsync -acz "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete --stats ${RSYNC_USER}@${UPDATES_SITE}:/tmp/lemeurherve/pr-745/www/${UPDATES_SITE} 1>"${ROOT_FOLDER}"/output-pkgcopy.log 2>&1 \
+    time azcopy sync "${ROOT_FOLDER}"/www3/ "${UPDATES_FILE_SHARE_URL}" --recursive=true --delete-destination=true 1>"${ROOT_FOLDER}"/output-azcopy.log 2>&1 \
+    time aws s3 sync "${ROOT_FOLDER}"/www3/ s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --no-progress --no-follow-symlinks --size-only --endpoint-url "${UPDATES_R2_ENDPOINT}" 1>"${ROOT_FOLDER}"/output-awsS3.log 2>&1
 
-# Sync CloudFlare R2 buckets content using the updates-jenkins-io profile, excluding 'updates' folder which comes from tool installer generator (using www3 to avoid symlinks)
-(time aws s3 sync "${ROOT_FOLDER}"/www3/ s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --no-progress --no-follow-symlinks --size-only --endpoint-url "${UPDATES_R2_ENDPOINT}") 1>"${ROOT_FOLDER}"/output-awsS3.log 2>&1 &
 
-wait
 # wait for all deferred task
 echo '===============================    all done   ============================'
 echo '-------------------------------     pkgcopy    ----------------------------'
