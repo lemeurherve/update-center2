@@ -65,9 +65,9 @@ echo '--------------------------- Launch Parallelization -----------------------
 
 
 parallel \
-    time rsync -acz "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete --stats ${RSYNC_USER}@${UPDATES_SITE}:/tmp/lemeurherve/pr-745/www/${UPDATES_SITE} 1>"${ROOT_FOLDER}"/output-pkgcopy.log 2>&1 \
-    time azcopy sync "${ROOT_FOLDER}"/www3/ "${UPDATES_FILE_SHARE_URL}" --recursive=true --delete-destination=true 1>"${ROOT_FOLDER}"/output-azcopy.log 2>&1 \
-    time aws s3 sync "${ROOT_FOLDER}"/www3/ s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --no-progress --no-follow-symlinks --size-only --endpoint-url "${UPDATES_R2_ENDPOINT}" 1>"${ROOT_FOLDER}"/output-awsS3.log 2>&1
+    time rsync -acz "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete --stats ${RSYNC_USER}@${UPDATES_SITE}:/tmp/lemeurherve/pr-745/www/${UPDATES_SITE} 1>"${ROOT_FOLDER}"/output-pkgcopy.log 2>&1; \
+    time azcopy sync "${ROOT_FOLDER}"/www3/ "${UPDATES_FILE_SHARE_URL}" --recursive=true --delete-destination=true 1>"${ROOT_FOLDER}"/output-azcopy.log 2>&1; \
+    time aws s3 sync "${ROOT_FOLDER}"/www3/ s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --no-progress --no-follow-symlinks --size-only --endpoint-url "${UPDATES_R2_ENDPOINT}" 1>"${ROOT_FOLDER}"/output-awsS3.log 2>&1;
 
 
 # wait for all deferred task
