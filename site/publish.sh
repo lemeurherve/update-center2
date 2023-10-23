@@ -9,12 +9,12 @@ if [[ -z "$ROOT_FOLDER" ]]; then
     ROOT_FOLDER="/home/jenkins/lemeurherve/pr-745" # TODO: remove after debug
 fi
 
+command -v parallel >/dev/null 2>&1 || { echo "ERROR: parralel command not found. Exiting."; exit 1; }
+
 echo "ROOT_FOLDER: ${ROOT_FOLDER}"
 
 wget --no-verbose -O jq https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 || { echo "Failed to download jq" >&2 ; exit 1; }
 chmod +x jq || { echo "Failed to make jq executable" >&2 ; exit 1; }
-
-command -v parallel >/dev/null 2>&1 || { echo "ERROR: parralel command not found. Exiting."; exit 1; }
 
 export PATH=.:$PATH
 
@@ -43,7 +43,7 @@ time rsync  -acvz \
             --copy-links `# derefence symlinks` \
             --safe-links `# ignore symlinks outside of copied tree` \
             --stats `# add verbose statistics` \
-            "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete "${ROOT_FOLDER}"/www3/
+            "${ROOT_FOLDER}"/www2/ --exclude=updates --delete "${ROOT_FOLDER}"/www3/
 # echo '------------------------------- rsync of www3 ----------------------------'
 # cat "${ROOT_FOLDER}"/output-www3.log
 # "${ROOT_FOLDER}"/www3/ doesn't have symlinks already
@@ -54,13 +54,17 @@ echo '--------------------------- Launch Parallelization -----------------------
 ## "${ROOT_FOLDER}"/www2/ still have symlinks
 
 # Original-like rsync to pkg VM for testing and timing purposes (keep www2 for symlinks)
+# keep exclude as from www2 with symlinks
 (time rsync -acz "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete --stats ${RSYNC_USER}@${UPDATES_SITE}:/tmp/lemeurherve/pr-745/www/${UPDATES_SITE}) 1>"${ROOT_FOLDER}"/output-pkgcopy.log 2>&1 &
 
-# Sync Azure File Share content (using www3 to avoid symlinks)
-(time azcopy sync "${ROOT_FOLDER}"/www3/ "${UPDATES_FILE_SHARE_URL}" --recursive=true --delete-destination=true --exclude-path="updates") 1>"${ROOT_FOLDER}"/output-azcopy.log 2>&1 &
 
+# Sync Azure File Share content (using www3 to avoid symlinks)
+(time azcopy sync "${ROOT_FOLDER}"/www3/ "${UPDATES_FILE_SHARE_URL}" --recursive=true --delete-destination=true) 1>"${ROOT_FOLDER}"/output-azcopy.log 2>&1 &
+
+
+check EXCLUDE for updates
 # Sync CloudFlare R2 buckets content using the updates-jenkins-io profile, excluding 'updates' folder which comes from tool installer generator (using www3 to avoid symlinks)
-(time aws s3 sync "${ROOT_FOLDER}"/www3/ s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --no-progress --no-follow-symlinks --size-only --exclude="updates/*" --endpoint-url "${UPDATES_R2_ENDPOINT}") 1>"${ROOT_FOLDER}"/output-awsS3.log 2>&1 &
+(time aws s3 sync "${ROOT_FOLDER}"/www3/ s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --no-progress --no-follow-symlinks --size-only --endpoint-url "${UPDATES_R2_ENDPOINT}") 1>"${ROOT_FOLDER}"/output-awsS3.log 2>&1 &
 
 wait
 # wait for all deferred task
