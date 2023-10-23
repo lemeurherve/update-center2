@@ -44,7 +44,7 @@ time rsync  -acvz \
             --copy-links `# derefence symlinks` \
             --safe-links `# ignore symlinks outside of copied tree` \
             --stats `# add verbose statistics` \
-            "${ROOT_FOLDER}"/www2/ --exclude=updates --delete "${ROOT_FOLDER}"/www3/
+            "${ROOT_FOLDER}"/www2/ --exclude=updates/ --delete "${ROOT_FOLDER}"/www3/
 # echo '------------------------------- rsync of www3 ----------------------------'
 # cat "${ROOT_FOLDER}"/output-www3.log
 # "${ROOT_FOLDER}"/www3/ doesn't have symlinks already
