@@ -70,17 +70,19 @@ rm -f "${ROOT_FOLDER}"/output-pkgcopy.log "${ROOT_FOLDER}"/output-azcopy.log "${
 ## define functions
 
 function parallelfunction() {
+    echo "=== parallelfunction: $1"
+
     case $1 in
     rsync*)
-        time rsync -acz "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete --stats ${RSYNC_USER}@${UPDATES_SITE}:/tmp/lemeurherve/pr-745/www/${UPDATES_SITE} 1>"${ROOT_FOLDER}"/output-pkgcopy.log 2>&1
+        time rsync -acz "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete --stats ${RSYNC_USER}@${UPDATES_SITE}:/tmp/lemeurherve/pr-745/www/${UPDATES_SITE}
         ;;
 
     azsync*)
-        time azcopy sync "${ROOT_FOLDER}"/www3/ "${UPDATES_FILE_SHARE_URL}" --recursive=true --delete-destination=true 1>"${ROOT_FOLDER}"/output-azcopy.log 2>&1;
+        time azcopy sync "${ROOT_FOLDER}"/www3/ "${UPDATES_FILE_SHARE_URL}" --recursive=true --delete-destination=true
         ;;
 
     s3sync*)
-        time aws s3 sync "${ROOT_FOLDER}"/www3/ s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --no-progress --no-follow-symlinks --size-only --endpoint-url "${UPDATES_R2_ENDPOINT}" 1>"${ROOT_FOLDER}"/output-awsS3.log 2>&1
+        time aws s3 sync "${ROOT_FOLDER}"/www3/ s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --no-progress --no-follow-symlinks --size-only --endpoint-url "${UPDATES_R2_ENDPOINT}"
         ;;
 
     *)
@@ -104,12 +106,6 @@ parallel --halt-on-error now,fail=1 parallelfunction ::: rsync azsync s3sync
 
 # wait for all deferred task
 echo '===============================    all done   ============================'
-# echo '-------------------------------     pkgcopy    ----------------------------'
-# cat "${ROOT_FOLDER}"/output-pkgcopy.log
-# echo '-------------------------------     azcopy    ----------------------------'
-# cat "${ROOT_FOLDER}"/output-azcopy.log
-# echo '-------------------------------     aws S3    ----------------------------'
-# cat "${ROOT_FOLDER}"/output-awsS3.log
 
 ## TODO: test if needed rclone both rsync VM and R2 bucket(s) replacing these 2 calls
 
