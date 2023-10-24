@@ -90,9 +90,9 @@ export -f azcopy_to_fileshare
 export -f aws_s3_sync_to_cloudfare
 
 parallel --halt-on-error now,fail=1 \
-    rsync_to_pkg \
-    azcopy_to_fileshare \
-    aws_s3_sync_to_cloudfare \
+    rsync_to_pkg; \
+    azcopy_to_fileshare; \
+    aws_s3_sync_to_cloudfare; \
     ::: 1
 
 # wait for all deferred task
