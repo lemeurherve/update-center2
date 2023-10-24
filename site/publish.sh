@@ -63,19 +63,30 @@ echo '--------------------------- Launch Parallelization -----------------------
 # (time aws s3 sync "${ROOT_FOLDER}"/www3/ s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --no-progress --no-follow-symlinks --size-only --endpoint-url "${UPDATES_R2_ENDPOINT}") 1>"${ROOT_FOLDER}"/output-awsS3.log 2>&1 &
 # wait
 
+## cleanup logs
 rm -f "${ROOT_FOLDER}"/output-pkgcopy.log "${ROOT_FOLDER}"/output-azcopy.log "${ROOT_FOLDER}"/output-awsS3.log
 
+## define functions
 rsync_to_pkg() {
     time rsync -acz "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete --stats ${RSYNC_USER}@${UPDATES_SITE}:/tmp/lemeurherve/pr-745/www/${UPDATES_SITE} 1>"${ROOT_FOLDER}"/output-pkgcopy.log 2>&1
 }
-export -f rsync_to_pkg
 azcopy_to_fileshare() {
     time azcopy sync "${ROOT_FOLDER}"/www3/ "${UPDATES_FILE_SHARE_URL}" --recursive=true --delete-destination=true 1>"${ROOT_FOLDER}"/output-azcopy.log 2>&1;
 }
-export -f azcopy_to_fileshare
 aws_s3_sync_to_cloudfare() {
     time aws s3 sync "${ROOT_FOLDER}"/www3/ s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --no-progress --no-follow-symlinks --size-only --endpoint-url "${UPDATES_R2_ENDPOINT}" 1>"${ROOT_FOLDER}"/output-awsS3.log 2>&1
 }
+
+## need to export variables used within the functions above
+export UPDATES_SITE
+export RSYNC_USER
+export UPDATES_R2_BUCKETS
+export UPDATES_R2_ENDPOINT
+export ROOT_FOLDER
+
+## export function to use with parallel
+export -f rsync_to_pkg
+export -f azcopy_to_fileshare
 export -f aws_s3_sync_to_cloudfare
 
 parallel --halt-on-error now,fail=1 \
