@@ -68,7 +68,7 @@ function parallelfunction() {
 
     s3sync*)
         # Sync CloudFlare R2 buckets content using the updates-jenkins-io profile, excluding 'updates' folder which comes from tool installer generator (using www3 to avoid symlinks)
-        time aws s3 sync "${ROOT_FOLDER}"/www3/ s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --no-progress --no-follow-symlinks --size-only --endpoint-url "${UPDATES_R2_ENDPOINT}"
+        time aws s3 sync "${ROOT_FOLDER}"/www3/ s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --no-progress --no-follow-symlinks --size-only --exclude '.htaccess' --endpoint-url "${UPDATES_R2_ENDPOINT}"
         ;;
 
     *)
