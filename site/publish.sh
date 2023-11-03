@@ -44,7 +44,9 @@ time rsync  -acvz \
             --copy-links `# derefence symlinks` \
             --safe-links `# ignore symlinks outside of copied tree` \
             --stats `# add verbose statistics` \
-            "${ROOT_FOLDER}"/www2/ --exclude=updates/ --delete "${ROOT_FOLDER}"/www3/
+            --exclude='updates' \
+            --delete \
+            "${ROOT_FOLDER}"/www2/ "${ROOT_FOLDER}"/www3/
 ## "${ROOT_FOLDER}"/www3/ doesn't have symlinks already
 ## "${ROOT_FOLDER}"/www2/ still have symlinks
 ### Below: parallelise
@@ -58,7 +60,7 @@ function parallelfunction() {
     case $1 in
     rsync*)
         # keep exclude as from www2 with symlinks
-        time rsync -acz "${ROOT_FOLDER}"/www2/ --exclude=/updates --delete --stats ${RSYNC_USER}@${UPDATES_SITE}:/tmp/lemeurherve/pr-745/www/${UPDATES_SITE}
+        time rsync -acz "${ROOT_FOLDER}"/www2/ --exclude='updates' --delete --stats ${RSYNC_USER}@${UPDATES_SITE}:/tmp/lemeurherve/pr-745/www/${UPDATES_SITE}
         ;;
 
     azsync*)
@@ -68,7 +70,13 @@ function parallelfunction() {
 
     s3sync*)
         # Sync CloudFlare R2 buckets content using the updates-jenkins-io profile, excluding 'updates' folder which comes from tool installer generator (using www3 to avoid symlinks)
-        time aws s3 sync "${ROOT_FOLDER}"/www3/ s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --no-progress --no-follow-symlinks --size-only --exclude '.htaccess' --endpoint-url "${UPDATES_R2_ENDPOINT}"
+        time aws s3 sync "${ROOT_FOLDER}"/www3/ s3://"${UPDATES_R2_BUCKETS}"/ \
+            --profile updates-jenkins-io \
+            --no-progress \
+            --no-follow-symlinks \
+            --size-only \
+            --exclude '.htaccess' \
+            --endpoint-url "${UPDATES_R2_ENDPOINT}"
         ;;
 
     *)
