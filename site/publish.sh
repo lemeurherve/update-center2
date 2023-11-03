@@ -89,15 +89,15 @@ export ROOT_FOLDER
 export -f parallelfunction
 parallel --halt-on-error now,fail=1 parallelfunction ::: rsync azsync s3sync
 
-
 # wait for all deferred task
 echo '===============================    all done   ============================'
-
-## TODO: test if needed rclone both rsync VM and R2 bucket(s) replacing these 2 calls
-
-# Debug
 
 # # /TIME sync, used by mirrorbits to know the last update date to take in account
 # date +%s > ./www2/TIME
 # aws s3 cp ./www2/TIME s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --endpoint-url "${UPDATES_R2_ENDPOINT}"
 # azcopy cp ./www2/TIME "${UPDATES_FILE_SHARE_URL}" --overwrite=true
+
+## Trigger a mirror scan on mirrorbits
+# Requires a valid kubernetes credential file at $KUBECONFIG or $HOME/.kube/config by default
+pod_name="$(kubectl --namespace=updates-jenkins-io --no-headers=true get pod --output=name | grep mirrorbits-lite | head -n1)"
+kubectl --namespace=updates-jenkins-io exec "${pod_name}" --container=mirrorbits-lite -- mirrorbits scan -all -enable -timeout=120
