@@ -33,11 +33,13 @@ export PATH=.:$PATH
 # # 'updates' come from tool installer generator, so leave that alone, but otherwise
 # # delete old sites
 chmod -R a+r "${ROOT_FOLDER}"/www2
-# # rsync -acvz www2/ --exclude=/updates --delete ${RSYNC_USER}@${UPDATES_SITE}:/var/www/${UPDATES_SITE}
+# TIME sync, used by mirrorbits to know the last update date to take in account
+date +%s > "${ROOT_FOLDER}"/www2/TIME
 
-# ### TODO: cleanup original commands above when https://github.com/jenkins-infra/helpdesk/issues/2649 is ready for production
+## Commented out: original rsync command to PKG VM (should be in the parallelized step below)
+# rsync -acvz www2/ --exclude=/updates --delete ${RSYNC_USER}@${UPDATES_SITE}:/var/www/${UPDATES_SITE}
 
-####   no need to remove the symlinks as the `azcopy sync`for symlinks is not yet supported and we use `--no-follow-symlinks` for `aws s3 sync``
+#### No need to remove the symlinks as the `azcopy sync` for symlinks is not yet supported and we use `--no-follow-symlinks` for `aws s3 sync``
 # Perform a copy with dereference symlink (object storage do not support symlinks)
 # copy & transform simlinks into referent file/dir
 time rsync  -acvz \
@@ -69,6 +71,7 @@ function parallelfunction() {
         ;;
 
     s3sync*)
+        ## Note: AWS CLI is configured through environment variables (from Jenkins credentials) - https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html
         # Sync CloudFlare R2 buckets content using the updates-jenkins-io profile, excluding 'updates' folder which comes from tool installer generator (using www3 to avoid symlinks)
         time aws s3 sync "${ROOT_FOLDER}"/www3/ s3://"${UPDATES_R2_BUCKETS}"/ \
             --profile updates-jenkins-io \
@@ -99,11 +102,6 @@ parallel --halt-on-error now,fail=1 parallelfunction ::: rsync azsync s3sync
 
 # wait for all deferred task
 echo '===============================    all done   ============================'
-
-# # /TIME sync, used by mirrorbits to know the last update date to take in account
-# date +%s > ./www2/TIME
-# aws s3 cp ./www2/TIME s3://"${UPDATES_R2_BUCKETS}"/ --profile updates-jenkins-io --endpoint-url "${UPDATES_R2_ENDPOINT}"
-# azcopy cp ./www2/TIME "${UPDATES_FILE_SHARE_URL}" --overwrite=true
 
 ## Trigger a mirror scan on mirrorbits
 # Requires a valid kubernetes credential file at $KUBECONFIG or $HOME/.kube/config by default
