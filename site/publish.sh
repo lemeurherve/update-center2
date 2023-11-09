@@ -8,6 +8,7 @@ UPDATES_R2_ENDPOINT="https://8d1838a43923148c5cee18ccc356a594.r2.cloudflarestora
 if [[ -z "$ROOT_FOLDER" ]]; then
     ROOT_FOLDER="/home/jenkins/lemeurherve/pr-745" # TODO: remove after debug
 fi
+export AWS_DEFAULT_REGION=auto
 
 # parallel added within the permanent trusted agent here : https://github.com/jenkins-infra/jenkins-infra/blob/production/dist/profile/manifests/buildagent.pp
 command -v parallel >/dev/null 2>&1 || { echo "ERROR: parralel command not found. Exiting."; exit 1; }
@@ -74,7 +75,6 @@ function parallelfunction() {
         ## Note: AWS CLI is configured through environment variables (from Jenkins credentials) - https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html
         # Sync CloudFlare R2 buckets content using the updates-jenkins-io profile, excluding 'updates' folder which comes from tool installer generator (using www3 to avoid symlinks)
         time aws s3 sync "${ROOT_FOLDER}"/www3/ s3://"${UPDATES_R2_BUCKETS}"/ \
-            --profile updates-jenkins-io \
             --no-progress \
             --no-follow-symlinks \
             --size-only \
