@@ -68,7 +68,7 @@ function parallelfunction() {
 
     azsync*)
         # Sync Azure File Share content (using www3 to avoid symlinks)
-        time azcopy sync "${ROOT_FOLDER}"/www3/ "${UPDATES_FILE_SHARE_URL}" --recursive=true --delete-destination=true
+        time azcopy sync "${ROOT_FOLDER}"/www3/ "https://updatesjenkinsio.file.core.windows.net/updates-jenkins-io/?${UPDATES_FILE_SHARE_QUERY_STRING}" --recursive=true --delete-destination=true
         ;;
 
     s3sync*)
@@ -95,6 +95,7 @@ export RSYNC_USER
 export UPDATES_R2_BUCKETS
 export UPDATES_R2_ENDPOINT
 export ROOT_FOLDER
+export UPDATES_FILE_SHARE_QUERY_STRING
 
 ## export function to use with parallel
 export -f parallelfunction
