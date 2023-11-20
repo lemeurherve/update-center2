@@ -92,8 +92,8 @@ export -f parallelfunction
 # https://github.com/jenkins-infra/jenkins-infra/blob/production/dist/profile/manifests/buildagent.pp
 command -v parallel >/dev/null 2>&1 || { echo 'ERROR: parralel command not found. Exiting.'; exit 1; }
 
-# # Sync only updates.jenkins.io by default
-# tasks=("rsync")
+# Sync only updates.jenkins.io tmp folder by default
+tasks=("rsync")
 
 # Sync updates.jenkins.io and azure.updates.jenkins.io File Share and R2 bucket(s) if the flag is set
 if [[ ${OPT_IN_SYNC_FS_R2} == "optin" ]]
