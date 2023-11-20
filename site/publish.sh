@@ -98,6 +98,7 @@ tasks=("rsync")
 # Sync updates.jenkins.io and azure.updates.jenkins.io File Share and R2 bucket(s) if the flag is set
 if [[ ${OPT_IN_SYNC_FS_R2} == "optin" ]]
 then
+    echo '== OPT-IN'
     # TIME sync, used by mirrorbits to know the last update date to take in account
     date +%s > "${ROOT_FOLDER}"/www2/TIME
 
@@ -111,6 +112,16 @@ then
                 --exclude='updates' `# Exclude ALL 'updates' directories, not only the root /updates (because symlink dereferencing create additional directories` \
                 "${ROOT_FOLDER}/www2/" "${ROOT_FOLDER}/www3/"
                 # in the real script: ./www2/ ./www3/
+
+    # Add File Share sync to the tasks
+    tasks+=("azsync")
+
+    # Add each R2 bucket sync to the tasks
+    updates_r2_bucket_and_endpoint_pairs=("westeurope-updates-jenkins-io|https://8d1838a43923148c5cee18ccc356a594.r2.cloudflarestorage.com")
+    for r2_bucket_and_endpoint_pair in "${updates_r2_bucket_and_endpoint_pairs[@]}"
+    do
+        tasks+=("s3sync${r2_bucket_and_endpoint_pair}")
+    done
 fi
 
 echo '----------------------- Launch synchronisation(s) -----------------------'
