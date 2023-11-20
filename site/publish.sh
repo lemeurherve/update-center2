@@ -76,7 +76,7 @@ function parallelfunction() {
         ;;
 
     *)
-        echo -n "unknown"
+        echo -n 'Warning: unknown parameter'
         ;;
     esac
 
@@ -95,12 +95,11 @@ export -f parallelfunction
 command -v parallel >/dev/null 2>&1 || { echo 'ERROR: parralel command not found. Exiting.'; exit 1; }
 
 # Sync only updates.jenkins.io tmp folder by default
-tasks=("rsync")
+tasks=('rsync')
 
 # Sync updates.jenkins.io and azure.updates.jenkins.io File Share and R2 bucket(s) if the flag is set
-if [[ ${OPT_IN_SYNC_FS_R2} == "optin" ]]
+if [[ ${OPT_IN_SYNC_FS_R2} == 'optin' ]]
 then
-    echo '== OPT-IN'
     # TIME sync, used by mirrorbits to know the last update date to take in account
     date +%s > "${ROOT_FOLDER}"/www2/TIME
 
@@ -116,7 +115,7 @@ then
                 # in the real script: ./www2/ ./www3/
 
     # Add File Share sync to the tasks
-    tasks+=("azsync")
+    tasks+=('azsync')
 
     # Add each R2 bucket sync to the tasks
     updates_r2_bucket_and_endpoint_pairs=("westeurope-updates-jenkins-io|https://8d1838a43923148c5cee18ccc356a594.r2.cloudflarestorage.com")
@@ -133,11 +132,11 @@ parallel --halt-on-error now,fail=1 parallelfunction ::: "${tasks[@]}"
 echo '============================ all done ============================'
 
 # Trigger a mirror scan on mirrorbits if the flag is set
-if [[ ${OPT_IN_SYNC_FS_R2} == "optin" ]]
+if [[ ${OPT_IN_SYNC_FS_R2} == 'optin' ]]
 then
     echo '== Triggering a mirror scan on mirrorbits...'
     # Kubernetes namespace of mirrorbits
-    mirrorbits_namespace="updates-jenkins-io"
+    mirrorbits_namespace='updates-jenkins-io'
 
     # Requires a valid kubernetes credential file at $KUBECONFIG or $HOME/.kube/config by default
     pod_name=$(kubectl --namespace="${mirrorbits_namespace}" --no-headers=true get pod --output=name | grep mirrorbits-lite | head -n1)
