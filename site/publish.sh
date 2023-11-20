@@ -51,10 +51,12 @@ function parallelfunction() {
         ;;
 
     azsync*)
-        # Sync Azure File Share content using www3 to avoid symlinks
-        time azcopy sync ./www3/ https://updatesjenkinsio.file.core.windows.net/updates-jenkins-io/?"${UPDATES_FILE_SHARE_QUERY_STRING}" \
-            --recursive=true \
-            --delete-destination=true
+        time azcopy sync "${ROOT_FOLDER}"/www3/ "https://updatesjenkinsio.file.core.windows.net/updates-jenkins-io/?${UPDATES_FILE_SHARE_QUERY_STRING}" --recursive=true --delete-destination=true
+
+        # # Sync Azure File Share content using www3 to avoid symlinks
+        # time azcopy sync ./www3/ https://updatesjenkinsio.file.core.windows.net/updates-jenkins-io/?"${UPDATES_FILE_SHARE_QUERY_STRING}" \
+        #     --recursive=true \
+        #     --delete-destination=true
         ;;
 
     s3sync*)
