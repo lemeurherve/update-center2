@@ -54,9 +54,9 @@ function parallelfunction() {
         time azcopy sync "${ROOT_FOLDER}"/www3/ "https://updatesjenkinsio.file.core.windows.net/updates-jenkins-io/?${UPDATES_FILE_SHARE_QUERY_STRING}" --recursive=true --delete-destination=true
 
         # # Sync Azure File Share content using www3 to avoid symlinks
-        # time azcopy sync ./www3/ https://updatesjenkinsio.file.core.windows.net/updates-jenkins-io/?"${UPDATES_FILE_SHARE_QUERY_STRING}" \
-        #     --recursive=true \
-        #     --delete-destination=true
+        time azcopy sync "${ROOT_FOLDER}/www3/" "https://updatesjenkinsio.file.core.windows.net/updates-jenkins-io/?${UPDATES_FILE_SHARE_QUERY_STRING}" \
+            --recursive=true \
+            --delete-destination=true
         ;;
 
     s3sync*)
@@ -67,7 +67,7 @@ function parallelfunction() {
 
         # Sync CloudFlare R2 buckets content excluding 'updates' folder from www3 sync (without symlinks)
         # as this folder is populated by https://github.com/jenkins-infra/crawler/blob/master/Jenkinsfile
-        time aws s3 sync ./www3/ "s3://${r2_bucket}/" \
+        time aws s3 sync "${ROOT_FOLDER}/www3/" "s3://${r2_bucket}/" \
             --no-progress \
             --no-follow-symlinks \
             --size-only \
@@ -118,12 +118,12 @@ then
     # Add File Share sync to the tasks
     tasks+=("azsync")
 
-    # # Add each R2 bucket sync to the tasks
-    # updates_r2_bucket_and_endpoint_pairs=("westeurope-updates-jenkins-io|https://8d1838a43923148c5cee18ccc356a594.r2.cloudflarestorage.com")
-    # for r2_bucket_and_endpoint_pair in "${updates_r2_bucket_and_endpoint_pairs[@]}"
-    # do
-    #     tasks+=("s3sync${r2_bucket_and_endpoint_pair}")
-    # done
+    # Add each R2 bucket sync to the tasks
+    updates_r2_bucket_and_endpoint_pairs=("westeurope-updates-jenkins-io|https://8d1838a43923148c5cee18ccc356a594.r2.cloudflarestorage.com")
+    for r2_bucket_and_endpoint_pair in "${updates_r2_bucket_and_endpoint_pairs[@]}"
+    do
+        tasks+=("s3sync${r2_bucket_and_endpoint_pair}")
+    done
 fi
 
 echo '----------------------- Launch synchronisation(s) -----------------------'
