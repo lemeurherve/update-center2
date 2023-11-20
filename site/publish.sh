@@ -18,7 +18,7 @@ chmod +x jq || { echo 'Failed to make jq executable' >&2 ; exit 1; }
 export PATH=.:${PATH}
 
 ## Generate the content of 'www2' and 'download' folders
-# "$( dirname "$0" )/generate.sh" "${ROOT_FOLDER}"/www2 ./download
+# "$( dirname "$0" )/generate.sh" ./www2 ./download
 
 # push plugins to mirrors.jenkins-ci.org
 # chmod -R a+r download
