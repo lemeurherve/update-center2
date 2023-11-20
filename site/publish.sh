@@ -116,12 +116,12 @@ then
     # Add File Share sync to the tasks
     tasks+=("azsync")
 
-    # Add each R2 bucket sync to the tasks
-    updates_r2_bucket_and_endpoint_pairs=("westeurope-updates-jenkins-io|https://8d1838a43923148c5cee18ccc356a594.r2.cloudflarestorage.com")
-    for r2_bucket_and_endpoint_pair in "${updates_r2_bucket_and_endpoint_pairs[@]}"
-    do
-        tasks+=("s3sync${r2_bucket_and_endpoint_pair}")
-    done
+    # # Add each R2 bucket sync to the tasks
+    # updates_r2_bucket_and_endpoint_pairs=("westeurope-updates-jenkins-io|https://8d1838a43923148c5cee18ccc356a594.r2.cloudflarestorage.com")
+    # for r2_bucket_and_endpoint_pair in "${updates_r2_bucket_and_endpoint_pairs[@]}"
+    # do
+    #     tasks+=("s3sync${r2_bucket_and_endpoint_pair}")
+    # done
 fi
 
 echo '----------------------- Launch synchronisation(s) -----------------------'
