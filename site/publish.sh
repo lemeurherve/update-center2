@@ -9,16 +9,16 @@ fi
 
 # For syncing R2 buckets aws-cli is configured through environment variables (from Jenkins credentials)
 # https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html
-export AWS_DEFAULT_REGION=auto
+export AWS_DEFAULT_REGION='auto'
 
 ## Install jq, required by generate.sh script
-wget --no-verbose -O jq https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 || { echo 'Failed to download jq' >&2 ; exit 1; }
+wget --no-verbose -O jq https://github.com/stedolan/jq/releases/download/jq-1.5/jq-linux64 || { echo "Failed to download jq" >&2 ; exit 1; }
 chmod +x jq || { echo 'Failed to make jq executable' >&2 ; exit 1; }
 
-export PATH=.:${PATH}
+export PATH=.:$PATH
 
 ## Generate the content of 'www2' and 'download' folders
-# "$( dirname "$0" )/generate.sh" ./www2 ./download
+# "$( dirname "$0" )/generate.sh" www2 download
 
 # push plugins to mirrors.jenkins-ci.org
 # chmod -R a+r download
