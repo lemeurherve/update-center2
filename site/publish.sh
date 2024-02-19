@@ -51,8 +51,11 @@ function parallelfunction() {
         ;;
 
     azsync*)
+        # Retrieve a signed File Share URL and put it in $FILESHARE_SIGNED_URL
+        # shellcheck source=/dev/null
+        fileShareSignedUrl=$(source ./get-fileshare-signed-url.sh)
         # Sync Azure File Share content using www3 to avoid symlinks
-        time azcopy sync "${ROOT_FOLDER}/www3/" "https://updatesjenkinsio.file.core.windows.net/updates-jenkins-io/?${UPDATES_FILE_SHARE_QUERY_STRING}" \
+        time azcopy sync "${ROOT_FOLDER}/www3/" "${fileShareSignedUrl}" \
             --recursive=true \
             --exclude-path="updates" `# populated by https://github.com/jenkins-infra/crawler` \
             --delete-destination=true
