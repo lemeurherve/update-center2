@@ -54,7 +54,7 @@ function parallelfunction() {
         # Retrieve a signed File Share URL and put it in $FILESHARE_SIGNED_URL
         ls -al
         # shellcheck source=/dev/null
-        fileShareSignedUrl=$(source ./get-fileshare-signed-url.sh)
+        fileShareSignedUrl=$(source ./site/get-fileshare-signed-url.sh)
         # Sync Azure File Share content using www3 to avoid symlinks
         time azcopy sync "${ROOT_FOLDER}/www3/" "${fileShareSignedUrl}" \
             --recursive=true \
