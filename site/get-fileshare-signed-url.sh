@@ -9,7 +9,7 @@ set +x
 # Login without the JSON output from az
 az login --service-principal --user "${JENKINS_INFRA_FILESHARE_CLIENT_ID}" --password "${JENKINS_INFRA_FILESHARE_CLIENT_SECRET}" --tenant "${JENKINS_INFRA_FILESHARE_TENANT_ID}" > /dev/null
 
-# Generate a SAS token
+# Generate a SAS token, remove double quotes around it and replace potential '/' by '%2F'
 expiry=$(date --utc --date "+ ${STORAGE_DURATION_IN_MINUTE} minutes" +"%Y-%m-%dT%H:%MZ")
 token=$(az storage share generate-sas \
 --name "${STORAGE_FILESHARE}" \
@@ -18,8 +18,9 @@ token=$(az storage share generate-sas \
 --permissions "${STORAGE_PERMISSIONS}" \
 --expiry "${expiry}" \
 --only-show-errors \
-| sed 's/\"//g')
+| sed 's/\"//g' \
+| sed 's|/|%2F|g')
 
 az logout
 
-echo "https://${STORAGE_NAME}.file.core.windows.net/${STORAGE_FILESHARE}?${token}"
+echo "https://${STORAGE_NAME}.file.core.windows.net/${STORAGE_FILESHARE}/?${token}"
