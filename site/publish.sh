@@ -63,7 +63,7 @@ function parallelfunction() {
             --delete-destination=true \
             --compare-hash=MD5 \
             --put-md5 \
-            --local-hash-storage-mode=HiddenFiles \
+            --local-hash-storage-mode=HiddenFiles `# filesystem does not support user_xattr`\
             "${ROOT_FOLDER}/www3/" "${fileShareSignedUrl}"
         ;;
 
