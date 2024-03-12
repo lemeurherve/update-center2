@@ -63,6 +63,7 @@ function parallelfunction() {
             --delete-destination=true \
             --compare-hash=MD5 \
             --put-md5 \
+            --local-hash-storage-mode=HiddenFiles \
             "${ROOT_FOLDER}/www3/" "${fileShareSignedUrl}"
         ;;
 
