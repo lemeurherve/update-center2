@@ -60,7 +60,10 @@ function parallelfunction() {
             --skip-version-check \
             --recursive=true \
             --exclude-path="updates" `# populated by https://github.com/jenkins-infra/crawler` \
-            --delete-destination=true
+            --delete-destination=true \
+            --compare-hash=MD5 \
+            --put-md5 \
+            "${ROOT_FOLDER}/www3/" "${fileShareSignedUrl}"
         ;;
 
     s3sync*)
