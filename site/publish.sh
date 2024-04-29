@@ -2,7 +2,7 @@
 
 # Used later for rsyncing updates
 UPDATES_SITE="updates.jenkins.io"
-RSYNC_USER="www-data"
+RSYNC_USER="mirrorbrain"
 if [[ -z "${ROOT_FOLDER}" ]]; then
     ROOT_FOLDER="/home/jenkins/lemeurherve/pr-745" # TODO: remove after debug, tmp folder where we copied the content from updates.jenkins.io
 fi
@@ -42,7 +42,8 @@ function parallelfunction() {
     case $1 in
     rsync*)
         # Push generated index to the production server **tmp folder**
-        time rsync --archive --checksum --verbose --compress \
+        time rsync --chown=mirrorbrain:www-data --recursive --links --perms --times -D \
+            --checksum --verbose --compress \
             --exclude=/updates `# populated by https://github.com/jenkins-infra/crawler` \
             --delete `# delete old sites` \
             --stats `# add verbose statistics` \
@@ -51,16 +52,16 @@ function parallelfunction() {
         ;;
 
     azsync*)
-        # Retrieve a signed File Share URL and put it in $FILESHARE_SIGNED_URL
-        ls -al
-        # shellcheck source=/dev/null
-        fileShareSignedUrl=$(source ./site/get-fileshare-signed-url.sh)
+        # Script stored in /usr/local/bin used to generate a signed file share URL with a short-lived SAS token
+        # Source: https://github.com/jenkins-infra/pipeline-library/blob/master/resources/get-fileshare-signed-url.sh
+        fileShareUrl=$(get-fileshare-signed-url.sh)
         # Sync Azure File Share content using www3 to avoid symlinks
         time azcopy sync \
-            --skip-version-check \
+            --skip-version-check `# Do not check for new azcopy versions (we have updatecli for this)` \
             --recursive=true \
-            --exclude-path=updates `# populated by https://github.com/jenkins-infra/crawler` \
-            "${ROOT_FOLDER}/www3/" "${fileShareSignedUrl}"
+            --exclude-path="updates" `# populated by https://github.com/jenkins-infra/crawler` \
+            --delete-destination=true \
+            "${ROOT_FOLDER}/www3/" "${fileShareUrl}"
         ;;
 
     s3sync*)
@@ -75,9 +76,8 @@ function parallelfunction() {
             --no-progress \
             --no-follow-symlinks \
             --size-only \
-            --exclude='updates/*' `# populated by https://github.com/jenkins-infra/crawler` \
-            --exclude='.htaccess' \
-            --endpoint-url="${r2_endpoint}" \
+            --exclude '.htaccess' \
+            --endpoint-url "${r2_endpoint}" \
             "${ROOT_FOLDER}/www3/" "s3://${r2_bucket}/"
         ;;
 
@@ -92,6 +92,12 @@ function parallelfunction() {
 export UPDATES_SITE
 export RSYNC_USER
 export ROOT_FOLDER
+
+# Export variables used in parallelfunction/azsync/get-fileshare-signed-url.sh
+export STORAGE_FILESHARE=updates-jenkins-io
+export STORAGE_NAME=updatesjenkinsio
+export STORAGE_DURATION_IN_MINUTE=5 # duration of the short-lived SAS token
+export STORAGE_PERMISSIONS=dlrw
 
 ## export function to use with parallel
 export -f parallelfunction
@@ -110,15 +116,15 @@ then
     date +%s > "${ROOT_FOLDER}"/www2/TIME
 
     # Perform a copy with dereference symlink (object storage do not support symlinks)
-    rm -rf ./www3/ # Cleanup
+    rm -rf "${ROOT_FOLDER}/www3/" # Cleanup
 
     ## No need to remove the symlinks as the `azcopy sync` for symlinks is not yet supported and we use `--no-follow-symlinks` for `aws s3 sync`
     rsync --archive --verbose \
-                --copy-links `# derefence symlinks` \
-                --safe-links `# ignore symlinks outside of copied tree` \
-                --exclude='updates' `# Exclude ALL 'updates' directories, not only the root /updates (because symlink dereferencing create additional directories` \
-                "${ROOT_FOLDER}/www2/" "${ROOT_FOLDER}/www3/"
-                # in the real script: ./www2/ ./www3/
+        --copy-links `# derefence symlinks` \
+        --safe-links `# ignore symlinks outside of copied tree` \
+        --exclude='updates' `# Exclude ALL 'updates' directories, not only the root /updates (because symlink dereferencing create additional directories` \
+        "${ROOT_FOLDER}/www2/" "${ROOT_FOLDER}/www3/"
+        # in the real script: ./www2/ ./www3/
 
     # Add File Share sync to the tasks
     tasks+=('azsync')
